@@ -1,0 +1,17 @@
+# Ignore Node Modules
+node_modules
+
+# Ignore package-lock.json
+package-lock.json
+
+# Ignore npm cache
+npm-cache
+
+# Ignore yarn cache
+yarn-cache
+
+# Ignore bower cache
+bower-cache
+
+#Ignore the environment file
+.env
