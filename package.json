@@ -1,15 +1,31 @@
 {
-  "name": "ecommerceapi",
+  "name": "ecommerce-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "E-commerce REST API using Express, PostgreSQL, and TDD",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "jest --detectOpenHandles"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.11.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.7",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "express": "^4.21.0"
-  }
+  "author": "Stéphane Ramaël",
+  "license": "MIT"
 }
