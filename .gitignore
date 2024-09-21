@@ -15,3 +15,6 @@ bower-cache
 
 #Ignore the environment file
 .env
+
+#Ignore coverage
+coverage

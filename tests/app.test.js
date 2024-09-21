@@ -1,6 +1,17 @@
 const request = require('supertest');  // Import supertest for HTTP assertions
 const app = require('../app');         // Import the Express app
 
+
+let server;
+
+beforeAll(() => {
+  server = app.listen(5000);  // Start the server before running tests
+});
+
+afterAll((done) => {
+  server.close(done);  // Close the server after tests are done
+});
+
 describe('GET /', () => {
   it('should return 200 OK with a welcome message', async () => {
     const res = await request(app).get('/');
