@@ -1,0 +1,99 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "E-Commerce API",
+    "version": "1.0.0",
+    "description": "API for managing an e-commerce application."
+  },
+  "paths": {
+    "/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "testuser"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "testuser@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                },
+                "required": [
+                  "username",
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Username is required, Email is required, Valid email is required, Password is required, Password must be at least 6 characters long"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

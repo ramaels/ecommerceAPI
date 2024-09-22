@@ -1,3 +1,4 @@
+// tests/auth.test.js
 const request = require('supertest');
 const app = require('../app');
 const db = require('../config/db');
@@ -55,7 +56,7 @@ describe('POST /register', () => {
       .send(newUser);
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe('Username, email, and password are required');
+    expect(res.body.message).toBe('Email is required, Valid email is required');
   });
 
   it('should return a 500 status if a server error occurs', async () => {

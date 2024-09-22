@@ -1,12 +1,18 @@
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
 const app = express();
-const usersRoute = require('./routes/users');
+const authRoutes = require('./routes/authRoutes');
+
+// Serve Swagger docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Middleware
 app.use(express.json());
 
 // Routes
-app.use(usersRoute);
+app.use(authRoutes);
 
 // Default route
 app.get('/', (req, res) => {
