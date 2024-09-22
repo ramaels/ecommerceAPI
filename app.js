@@ -1,7 +1,14 @@
 const express = require('express');
 const app = express();
+const usersRoute = require('./routes/users');
 
-// Root route
+// Middleware
+app.use(express.json());
+
+// Routes
+app.use(usersRoute);
+
+// Default route
 app.get('/', (req, res) => {
   res.status(200).send('API is running...');
 });
