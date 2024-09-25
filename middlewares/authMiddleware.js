@@ -1,20 +1,27 @@
 // middlewares/authMiddleware.js
-const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const { Strategy: LocalStrategy } = require('passport-local');
+const userService = require('../services/userService');
 
-const authenticateToken = (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Access denied. No token provided.' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(403).json({ message: 'Invalid token.' });
-  }
-};
-
-module.exports = authenticateToken;
+// Setup Passport local strategy for login
+passport.use(
+  new LocalStrategy(
+    { usernameField: 'email', passwordField: 'password' },
+    async (email, password, done) => {
+      try {
+        const user = await userService.findUserByEmail(email);
+        if (!user) {
+          return done(null, false, { message: 'Invalid email or password' });
+        }
+        const isMatch = await userService.comparePasswords(password, user.password);
+        if (!isMatch) {
+          return done(null, false, { message: 'Invalid email or password' });
+        }
+        return done(null, user);
+      } catch (err) {
+        console.error('Error during authentication:', err); // Logs the error
+        return done(err); // Pass the error to be handled
+      }
+    }
+  )
+);

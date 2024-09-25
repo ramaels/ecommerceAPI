@@ -1,12 +1,18 @@
 const express = require('express');
+const passport = require('passport');
+require('./middlewares/authMiddleware'); // Initialize Passport middleware
+
+const authRoutes = require('./routes/authRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 
 const app = express();
-const authRoutes = require('./routes/authRoutes');
 
 // Serve Swagger docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // Middleware
 app.use(express.json());

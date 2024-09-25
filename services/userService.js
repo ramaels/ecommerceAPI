@@ -13,7 +13,12 @@ const registerUser = async (username, email, password) => {
   return db.createUser(username, email, hashedPassword);
 };
 
+const comparePasswords = async (inputPassword, storedPassword) => {
+  return bcrypt.compare(inputPassword, storedPassword);
+};
+
 module.exports = {
   registerUser,
   findUserByEmail,
+  comparePasswords,
 };
