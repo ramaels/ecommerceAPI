@@ -1,11 +1,10 @@
 const request = require('supertest');  // Import supertest for HTTP assertions
 const app = require('../app');         // Import the Express app
 
-
 let server;
 
 beforeAll(() => {
-  server = app.listen(5000);  // Start the server before running tests
+  server = app.listen(5100);  // Start the server before running tests
 });
 
 afterAll((done) => {

@@ -1,6 +1,6 @@
 // routes/authRoutes.js
 const express = require('express');
-const { registerUser, loginUser } = require('../controllers/authController');
+const { registerUser, loginUser, refreshToken } = require('../controllers/authController');
 const { validateUserRegistration, validateUserLogin } = require('../utils/validators');
 
 const router = express.Router();
@@ -9,5 +9,6 @@ const router = express.Router();
 router.post('/register', validateUserRegistration, registerUser);
 
 router.post('/login', validateUserLogin, loginUser);
+router.post('/refresh-token', refreshToken);
 
 module.exports = router;

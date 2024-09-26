@@ -8,7 +8,9 @@
   "paths": {
     "/register": {
       "post": {
-        "tags": ["Register"],
+        "tags": [
+          "Register"
+        ],
         "summary": "Register a new user",
         "requestBody": {
           "required": true,
@@ -98,7 +100,9 @@
     },
     "/login": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Login a user",
         "description": "Logs in an existing user by validating the credentials and generating a JWT token.",
         "requestBody": {
@@ -118,7 +122,10 @@
                     "example": "password123"
                   }
                 },
-                "required": ["email", "password"]
+                "required": [
+                  "email",
+                  "password"
+                ]
               }
             }
           }
@@ -191,6 +198,57 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/refresh-token": {
+      "post": {
+        "summary": "Refresh JWT token",
+        "description": "Generate a new access token using a valid refresh token",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "Refresh token"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "New access token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Refresh token is required"
+          },
+          "403": {
+            "description": "Invalid or expired refresh token"
           }
         }
       }

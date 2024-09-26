@@ -3,7 +3,18 @@ const request = require('supertest');
 const app = require('../app');
 const db = require('../config/db');
 const userService = require('../services/userService');
-const passport = require('passport');
+const tokenService = require('../services/tokenService');
+const jwt = require('jsonwebtoken');
+
+let server;
+
+beforeAll(() => {
+  server = app.listen(5100);  // Start the server before running tests
+});
+
+afterAll((done) => {
+  server.close(done);  // Close the server after tests are done
+});
 
 afterAll(() => {
   db.pool.end();  // Close the pool after all tests
@@ -15,6 +26,11 @@ describe('POST /register', () => {
     await db.query('TRUNCATE users RESTART IDENTITY CASCADE');
   });
 
+  afterEach(() => {
+    // Reset all mocks after each test
+    jest.clearAllMocks();
+  });
+  
   it('should register a new user successfully', async () => {
     const newUser = {
       username: 'testuser',
@@ -83,6 +99,20 @@ describe('POST /register', () => {
 });
 
 describe('POST /login', () => {
+  beforeAll(async () => {
+    // Find the user ID for 'testuser'
+    const user = await userService.findUserByEmail('testuser@example.com');
+    if (user) {
+      // Delete all rows related to this user's ID from the refresh_tokens table
+      await db.query('DELETE FROM refresh_tokens WHERE user_id = $1', [user.id]);
+    }
+  });
+
+  afterEach(() => {
+    // Reset all mocks after each test
+    jest.clearAllMocks();
+  });
+  
   it('should log in successfully with correct credentials', async () => {
     const userCredentials = {
       email: 'testuser@example.com',
@@ -94,7 +124,8 @@ describe('POST /login', () => {
       .send(userCredentials);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('token');
+    expect(res.body).toHaveProperty('accessToken');
+    expect(res.body).toHaveProperty('refreshToken');
     expect(res.body.user).toHaveProperty('username', 'testuser');
   });
 
@@ -141,6 +172,20 @@ describe('POST /login', () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.body.message).toBe('Invalid email or password');
+  });
+
+  it('should return 500 if an error occurs during token generation', async () => {
+    // Simulate an error in token generation
+    jest.spyOn(jwt, 'sign').mockImplementation(() => {
+      throw new Error('Token generation error');
+    });
+
+    const res = await request(app)
+      .post('/login')
+      .send({ email: 'testuser@example.com', password: 'password123' });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.message).toBe('Token generation failed');
   });
 
   it('should return 500 if an error occurs during authentication', async () => {

@@ -1,4 +1,15 @@
 const db = require('../config/db');
+const app = require('../app');         // Import the Express app
+
+let server;
+
+beforeAll(() => {
+  server = app.listen(5100);  // Start the server before running tests
+});
+
+afterAll((done) => {
+  server.close(done);  // Close the server after tests are done
+});
 
 describe('PostgreSQL connection', () => {
   afterAll(() => {
