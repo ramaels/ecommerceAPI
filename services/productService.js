@@ -1,8 +1,11 @@
 // services/productService.js
 const productModel = require('../models/productModel');
 
-const getAllProducts = async (search, category) => {
-  return await productModel.getAllProducts(search, category);
+const getAllProducts = async (search, category, page, size) => {
+  const limit = size || 10;  // Default size 10
+  const offset = (page - 1) * limit;
+
+  return await productModel.getAllProducts(search, category, limit, offset);
 };
 
 const getProductById = async (id) => {

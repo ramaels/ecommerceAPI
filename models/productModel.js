@@ -1,7 +1,7 @@
 // models/productModel.js
 const db = require('../config/db'); // Ensure db connection is correctly set up
 
-const getAllProducts = async (search, category) => {
+const getAllProducts = async (search, category, limit, offset) => {
   let query = 'SELECT * FROM products';
   const values = [];
   const conditions = [];
@@ -19,6 +19,9 @@ const getAllProducts = async (search, category) => {
   if (conditions.length > 0) {
     query += ' WHERE ' + conditions.join(' AND ');
   }
+
+  query += ' ORDER BY id LIMIT $' + (values.length + 1) + ' OFFSET $' + (values.length + 2);
+  values.push(limit, offset);
 
   const result = await db.query(query, values);
   return result.rows;

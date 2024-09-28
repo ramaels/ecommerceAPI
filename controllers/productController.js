@@ -3,10 +3,10 @@ const productService = require('../services/productService');
 
 // Get all products with optional search and category filters
 const getProducts = async (req, res) => {
-  const { search, category } = req.query;
+  const { search, category, page = 1, size = 10 } = req.query;
 
   try {
-    const products = await productService.getAllProducts(search, category);
+    const products = await productService.getAllProducts(search, category, page, size);
     return res.status(200).json({ products });
   } catch (err) {
     console.error('Error fetching products:', err);

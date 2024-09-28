@@ -50,16 +50,6 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
     createdProductId = res.rows[0].id; // Store the ID of the first inserted product
   });
 
-  beforeEach(async () => {
-    // Reset tokens before each test to ensure state isolation
-    const res = await request(app)
-      .post('/login')
-      .send({ email: 'testuser@example.com', password: 'testpassword' });
-
-    accessToken = res.body.accessToken;
-    refreshToken = res.body.refreshToken;
-  });
-
   it('should return 401 if no token is provided', async () => {
     const res = await request(app).get('/products');
     expect(res.statusCode).toBe(401);
@@ -266,12 +256,10 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
     });
   });
 
-});
-
-describe('GET /products with pagination', () => {
-  beforeAll(async () => {
-    // Optionally insert some products into the database
-    await db.query(`
+  describe('GET /products with pagination', () => {
+    beforeAll(async () => {
+      // Optionally insert some products into the database
+      await db.query(`
       INSERT INTO products (name, description, price, category_id)
       VALUES
         ('Product1', 'Description1', 100, 1),
@@ -280,31 +268,36 @@ describe('GET /products with pagination', () => {
         ('Product4', 'Description4', 400, 1),
         ('Product5', 'Description5', 500, 1)
     `);
-  });
+    });
 
-  it('should fetch the first page of products', async () => {
-    const res = await request(app)
-      .get('/products?page=1&size=2');
-    
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('products');
-    expect(res.body.products.length).toBe(2);  // Expecting 2 products
-  });
+    it('should fetch the first page of products', async () => {
+      const res = await request(app)
+        .get('/products?page=1&size=2')
+        .set('Authorization', userAccessToken);
 
-  it('should fetch the second page of products with 2 items', async () => {
-    const res = await request(app)
-      .get('/products?page=2&size=2');
-    
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('products');
-    expect(res.body.products.length).toBe(2);  // Expecting 2 products on the second page
-  });
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('products');
+      expect(res.body.products.length).toBe(2);  // Expecting 2 products
+    });
 
-  it('should return an empty array if page exceeds total number of products', async () => {
-    const res = await request(app)
-      .get('/products?page=10&size=2');
-    
-    expect(res.statusCode).toBe(200);
-    expect(res.body.products.length).toBe(0);  // No products on page 10
+    it('should fetch the second page of products with 2 items', async () => {
+      const res = await request(app)
+        .get('/products?page=2&size=2')
+        .set('Authorization', userAccessToken);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('products');
+      expect(res.body.products.length).toBe(2);  // Expecting 2 products on the second page
+    });
+
+    it('should return an empty array if page exceeds total number of products', async () => {
+      const res = await request(app)
+        .get('/products?page=10&size=2')
+        .set('Authorization', userAccessToken);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.products.length).toBe(0);  // No products on page 10
+    });
   });
 });
+
