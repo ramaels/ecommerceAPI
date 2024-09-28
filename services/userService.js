@@ -17,8 +17,14 @@ const comparePasswords = async (inputPassword, storedPassword) => {
   return bcrypt.compare(inputPassword, storedPassword);
 };
 
+const findUserById = async (userId) => {
+    const user = await db.findUserById(userId);
+    return user;
+};
+
 module.exports = {
   registerUser,
   findUserByEmail,
   comparePasswords,
+  findUserById,
 };

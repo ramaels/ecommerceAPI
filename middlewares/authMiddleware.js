@@ -2,6 +2,8 @@
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
 const userService = require('../services/userService');
+const jwt = require('jsonwebtoken');
+require('dotenv').config(); // Load environment variables from .env
 
 // Setup Passport local strategy for login
 passport.use(
@@ -25,3 +27,39 @@ passport.use(
     }
   )
 );
+
+const verifyAccessToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+
+  // Check if the Authorization header is present
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Token is required' });
+  }
+
+  // The token should be in the format "Bearer <token>"
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'Token is required' });
+  }
+
+  // Verify the token
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+
+    // Attach user information to the request object
+    req.user = user;
+    next();
+  });
+};
+
+// Middleware to check if the user has admin role
+const isAdmin = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  next();
+};
+
+module.exports = { verifyAccessToken, isAdmin };

@@ -25,6 +25,7 @@ const registerUser = async (req, res) => {
   }
 };
 
+// Log in user and generate tokens
 const loginUser = (req, res, next) => {
   passport.authenticate('local', { session: false }, async (err, user, info) => {
     if (err) {
@@ -60,6 +61,7 @@ const loginUser = (req, res, next) => {
   })(req, res, next);  // Call authenticate as a middleware here
 };
 
+// Refresh token functionality
 const refreshToken = async (req, res) => {
   const { token } = req.body;
 
@@ -75,9 +77,16 @@ const refreshToken = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Optionally, revoke the old refresh token
+    await tokenService.revokeRefreshToken(token);
+
     // Generate a new access token
-    const newAccessToken = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    return res.status(200).json({ token: newAccessToken });
+    const newAccessToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Optionally, generate a new refresh token
+    const newRefreshToken = await tokenService.generateRefreshToken(user.id);
+
+    return res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (err) {
     console.error('Error during token refresh:', err);
     return res.status(403).json({ message: err.message });

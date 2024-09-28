@@ -16,7 +16,13 @@ const findUserByEmail = async (email) => {
   return result.rows[0];
 };
 
+const findUserById = async (userId) => {
+    const result = await db.query('SELECT id, username, email, role FROM users WHERE id = $1', [userId]);
+    return result.rows[0];
+};
+
 module.exports = {
   createUser,
   findUserByEmail,
+  findUserById,
 };
