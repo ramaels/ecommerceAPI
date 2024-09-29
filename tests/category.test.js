@@ -7,10 +7,11 @@ const userService = require('../services/userService');
 let server, adminAccessToken, userAccessToken;
 
 beforeAll(async () => {
-  server = app.listen(5200);  // Start the server for testing
+  server = app.listen(5100);  // Start the server for testing
 
   // Truncate tables to ensure clean state
-  await db.query('TRUNCATE users, categories RESTART IDENTITY CASCADE');
+  await db.query('TRUNCATE users RESTART IDENTITY CASCADE');
+  // await db.query(`INSERT INTO categories (id, name, description) VALUES (1, 'Electronics', 'Electronic devices and gadgets.'), (2, 'Accessories', 'Various accessories for electronic devices.') ON CONFLICT (id) DO NOTHING;`);
 
   // Create admin user and regular user
   const adminUser = await userService.registerUser('adminuser', 'admin@example.com', 'adminpassword', 'admin');
@@ -34,14 +35,14 @@ describe('Category Management (CRUD) - Admin Only', () => {
       .post('/categories')
       .set('Authorization', adminAccessToken)
       .send({
-        name: 'Electronics',
-        description: 'Devices and gadgets',
+        name: 'TVs',
+        description: 'Various TV sets and screens',
       });
       
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('category');
-    expect(res.body.category.name).toBe('Electronics');
-    expect(res.body.category.description).toBe('Devices and gadgets');
+    expect(res.body.category.name).toBe('TVs');
+    expect(res.body.category.description).toBe('Various TV sets and screens');
     createdCategoryId = res.body.category.id;  // Store the created category ID
   });
 

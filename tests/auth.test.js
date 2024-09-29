@@ -14,10 +14,7 @@ beforeAll(() => {
 
 afterAll(() => {
   db.pool.end();  // Close the pool after all tests
-});
-
-afterAll((done) => {
-  server.close(done);  // Close the server after tests are done
+  server.close();  // Close the server after tests are done
 });
 
 describe('POST /register', () => {
