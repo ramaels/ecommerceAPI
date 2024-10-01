@@ -10,11 +10,7 @@ const getAllCategories = async () => {
 };
 
 const getCategoryById = async (id) => {
-  const category = await categoryModel.getCategoryById(id);
-  if (!category) {
-    throw new Error('Category not found');
-  }
-  return category;
+  return await categoryModel.getCategoryById(id);
 };
 
 const updateCategory = async (id, name, description) => {

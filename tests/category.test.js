@@ -38,7 +38,7 @@ describe('Category Management (CRUD) - Admin Only', () => {
         name: 'TVs',
         description: 'Various TV sets and screens',
       });
-      
+
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('category');
     expect(res.body.category.name).toBe('TVs');
@@ -128,4 +128,36 @@ describe('Category Management (CRUD) - Admin Only', () => {
     expect(res.statusCode).toBe(403);
     expect(res.body.message).toBe('Admin access required');
   });
+
+  it('should return 404 if category is not found', async () => {
+    const res = await request(app)
+      .get('/categories/999')
+      .set('Authorization', adminAccessToken);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe('Category not found');
+  });
+
+  describe('Category Validation', () => {
+    it('should return 400 if category name or description is missing on create', async () => {
+      const res = await request(app)
+        .post('/categories')
+        .set('Authorization', adminAccessToken)
+        .send({ name: '' });  // Missing description
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Category name is required, Category description is required');
+    });
+
+    it('should return 400 if category name or description is missing on update', async () => {
+      const res = await request(app)
+        .put(`/categories/${createdCategoryId}`)
+        .set('Authorization', adminAccessToken)
+        .send({ description: '' });  // Missing name
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Category name is required, Category description is required');
+    });
+  });
 });
+

@@ -1,19 +1,20 @@
 // controllers/authController.js
 const userService = require('../services/userService');
 const tokenService = require('../services/tokenService');
+const { NotFoundError, ValidationError, DatabaseError, ForbiddenError, UnauthorizedError} = require('../utils/errors'); // Custom errors
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 require('dotenv').config(); // Load environment variables from .env
 
 // Register a new user
-const registerUser = async (req, res) => {
+const registerUser = async (req, res, next) => {
   const { username, email, password } = req.body;
 
   try {
     // Check if the user already exists
     const existingUser = await userService.findUserByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      next(new ValidationError('User already exists')); // Pass error to centralized handler
     }
 
     // Create a new user if the email is not registered
@@ -21,7 +22,7 @@ const registerUser = async (req, res) => {
     return res.status(201).json(newUser);
   } catch (err) {
     console.error('Error during user registration:', err);  // Add logging for error tracking
-    return res.status(500).json({ message: 'Server error' });
+    next(new DatabaseError('Server error')); // Pass error to centralized handler
   }
 };
 
@@ -30,11 +31,11 @@ const loginUser = (req, res, next) => {
   passport.authenticate('local', { session: false }, async (err, user, info) => {
     if (err) {
       console.error('Error during login:', err);
-      return res.status(500).json({ message: 'Server error' });
+      return next(new DatabaseError('Server error')); // Pass error to centralized handler
     }
     if (!user) {
-      console.error('Error during authentication:', info.message);
-      return res.status(401).json({ message: info.message });
+      console.error('Error during authenticate:', info.message);
+      return next(new UnauthorizedError(info.message)); // Pass error to centralized handler
     }
 
     try {
@@ -56,26 +57,26 @@ const loginUser = (req, res, next) => {
       });
     } catch (err) {
       console.error('Error generating tokens:', err);
-      return res.status(500).json({ message: 'Token generation failed' });
+      return next(new DatabaseError('Token generation failed'));
     }
   })(req, res, next);  // Call authenticate as a middleware here
 };
 
 // Refresh token functionality
-const refreshToken = async (req, res) => {
+const refreshToken = async (req, res, next) => {
   const { token } = req.body;
 
   if (!token) {
-    return res.status(400).json({ message: 'Refresh token is required' });
+    return next(new ValidationError('Refresh token is required'));
   }
 
   try {
     const decoded = await tokenService.verifyRefreshToken(token);
     const user = await userService.findUserById(decoded.id);
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // if (!user) {
+    //   return next(new NotFoundError('User not found'));
+    // }
 
     // Optionally, revoke the old refresh token
     await tokenService.revokeRefreshToken(token);
@@ -89,7 +90,7 @@ const refreshToken = async (req, res) => {
     return res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (err) {
     console.error('Error during token refresh:', err);
-    return res.status(403).json({ message: err.message });
+    return next(new ForbiddenError('Invalid or expired refresh token'));
   }
 };
 

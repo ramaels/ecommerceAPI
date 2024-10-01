@@ -5,6 +5,7 @@ const db = require('../config/db'); // Your DB configuration
 const jwt = require('jsonwebtoken');
 const tokenService = require('../services/tokenService');
 const userService = require('../services/userService');
+const productService = require('../services/productService');
 
 let server;
 
@@ -50,8 +51,21 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
     createdProductId = res.rows[0].id; // Store the ID of the first inserted product
   });
 
-  it('should return 401 if no token is provided', async () => {
+  afterEach(() => {
+    // Reset all mocks after each test
+    jest.clearAllMocks();
+  });
+  
+  it('should return 401 if no header is provided', async () => {
     const res = await request(app).get('/products');
+    expect(res.statusCode).toBe(401);
+    expect(res.body.message).toBe('Header is required');
+  });
+
+  it('should return 401 if no Token is provided', async () => {
+    const res = await request(app)
+      .get('/products')
+      .set('Authorization', 'Bearer');
     expect(res.statusCode).toBe(401);
     expect(res.body.message).toBe('Token is required');
   });
@@ -88,6 +102,20 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
     expect(res.body.refreshToken).toBeDefined();
   });
 
+  // it('should return 404 when refreshing with a valid refresh token but no user were found', async () => {
+  //   jest.spyOn(userService, 'findUserById').mockImplementation(() => {
+  //     return false;
+  //   });
+
+  //   const res = await request(app)
+  //     .post('/refresh-token')
+  //     .set('Authorization', userAccessToken)
+  //     .send({ token: refreshToken });
+
+  //   expect(res.statusCode).toBe(404);
+  //   expect(res.body.message).toBe('User not found');
+  // });
+
   it('should return 403 if refresh token is used as access token', async () => {
     const res = await request(app)
       .get('/products')
@@ -106,8 +134,60 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
     expect(res.body.message).toBe('Invalid or expired refresh token');
   });
 
-  // Admin Operations Tests
+  it('should return 400 when refreshing with a missing refresh token', async () => {
+    const res = await request(app)
+      .post('/refresh-token');
 
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe('Refresh token is required');
+  });
+
+  it('should return 500 if an error occurs while fetching products', async () => {
+    jest.spyOn(productService, 'getAllProducts').mockImplementationOnce(() => {
+      throw new Error('Database error');
+    });
+
+    const res = await request(app)
+      .get('/products')
+      .set('Authorization', userAccessToken);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.message).toBe('Server error fetching products');
+  });
+
+  it('should fetch a specific product by ID', async () => {
+    const res = await request(app)
+      .get('/products/2')
+      .set('Authorization', userAccessToken);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('product');
+    expect(res.body.product.name).toBe('Smartphone');
+  });
+
+  it('should return 404 when fetching a specific product with a non-existing ID', async () => {
+    const res = await request(app)
+      .get('/products/999')
+      .set('Authorization', userAccessToken);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe('Product not found');
+  });
+
+  it('should return 500 if an error occurs while fetching a specific product by ID', async () => {
+    jest.spyOn(productService, 'getProductById').mockImplementationOnce(() => {
+      throw new Error('Database error');
+    });
+
+    const res = await request(app)
+      .get('/products/2')
+      .set('Authorization', userAccessToken);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.message).toBe('Server error fetching a specific product by ID');
+  });
+
+  // Admin Operations Tests
   describe('Admin Operations on Product Routes', () => {
     it('should allow access with a valid admin token', async () => {
       const res = await request(app)
@@ -139,6 +219,26 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
       expect(res.body.product.description).toBe(newProduct.description);
       expect(res.body.product.price).toBe(newProduct.price.toString()); // Depending on how decimals are handled
       expect(res.body.product.category_id).toBe(newProduct.category_id);
+    });
+
+    it('should return 500 if an error occurs while creating a new product', async () => {
+      jest.spyOn(productService, 'createProduct').mockImplementationOnce(() => {
+        throw new Error('Database error');
+      });
+        const newProduct = {
+        name: 'Tablet',
+        description: 'A lightweight tablet.',
+        price: 299.99,
+        category_id: 1
+      };
+
+      const res = await request(app)
+        .post('/products')
+        .set('Authorization', adminAccessToken)
+        .send(newProduct);
+
+      expect(res.statusCode).toBe(500);
+      expect(res.body.message).toBe('Server error creating product');
     });
 
     it('should forbid non-admin user from creating a new product', async () => {
@@ -213,6 +313,40 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
       expect(res.body.message).toBe('Product not found');
     });
 
+    it('should return 500 if an error occurs while updating an existing product', async () => {
+      jest.spyOn(productService, 'updateProduct').mockImplementationOnce(() => {
+        throw new Error('Database error');
+      });
+
+      const updatedProduct = {
+        name: 'Gaming Laptop',
+        description: 'A high-performance gaming laptop.',
+        price: 1299.99,
+        category_id: 1
+      };
+
+      const res = await request(app)
+        .put(`/products/${createdProductId}`)
+        .set('Authorization', adminAccessToken)
+        .send(updatedProduct);
+
+      expect(res.statusCode).toBe(500);
+      expect(res.body.message).toBe('Server error updating product');
+    });
+
+    it('should return 500 if an error occurs while admin is deleting a product', async () => {
+      jest.spyOn(productService, 'deleteProduct').mockImplementationOnce(() => {
+        throw new Error('Database error');
+      });
+
+      const res = await request(app)
+        .delete(`/products/${createdProductId}`)
+        .set('Authorization', adminAccessToken);
+
+      expect(res.statusCode).toBe(500);
+      expect(res.body.message).toBe('Server error deleting product');
+    });
+
     it('should allow admin to delete a product', async () => {
       const res = await request(app)
         .delete(`/products/${createdProductId}`)
@@ -268,6 +402,46 @@ describe('Product Routes - Token Verification and Admin Operations', () => {
         ('Product4', 'Description4', 400, 1),
         ('Product5', 'Description5', 500, 1)
     `);
+    });
+
+    it('should fetch the products containing "product" in their name', async () => {
+      const res = await request(app)
+        .get('/products?search=product')
+        .set('Authorization', userAccessToken);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('products');
+      expect(res.body.products.length).toBe(5);  // Expecting 5 products
+    });
+
+    it('should fetch the products containing "description" in their description', async () => {
+      const res = await request(app)
+        .get('/products?search=description')
+        .set('Authorization', userAccessToken);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('products');
+      expect(res.body.products.length).toBe(5);  // Expecting 5 products
+    });
+
+    it('should fetch the products containing "d" in their name or description', async () => {
+      const res = await request(app)
+        .get('/products?search=d')
+        .set('Authorization', userAccessToken);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('products');
+      expect(res.body.products.length).toBe(7);  // Expecting 5 products
+    });
+
+    it('should fetch the products containing "d" in their name or description and "e" in their category', async () => {
+      const res = await request(app)
+        .get('/products?search=d&category=e')
+        .set('Authorization', userAccessToken);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('products');
+      expect(res.body.products.length).toBe(7);  // Expecting 5 products
     });
 
     it('should fetch the first page of products', async () => {

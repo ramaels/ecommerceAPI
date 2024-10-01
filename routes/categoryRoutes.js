@@ -8,11 +8,12 @@ const {
   deleteCategory,
 } = require('../controllers/categoryController');
 const { verifyAccessToken, isAdmin } = require('../middlewares/authMiddleware');
+const { validateCategoryCreation, validateCategoryUpdate } = require('../utils/validators');
 
 const router = express.Router();
 
 // POST /categories - Admin only
-router.post('/categories', verifyAccessToken, isAdmin, createCategory);
+router.post('/categories', verifyAccessToken, isAdmin, validateCategoryCreation, createCategory);
 
 // GET /categories - Public route to get all categories
 router.get('/categories', verifyAccessToken, getAllCategories);
@@ -21,7 +22,7 @@ router.get('/categories', verifyAccessToken, getAllCategories);
 router.get('/categories/:id', verifyAccessToken, getCategoryById);
 
 // PUT /categories/:id - Admin only
-router.put('/categories/:id', verifyAccessToken, isAdmin, updateCategory);
+router.put('/categories/:id', verifyAccessToken, isAdmin, validateCategoryUpdate, updateCategory);
 
 // DELETE /categories/:id - Admin only
 router.delete('/categories/:id', verifyAccessToken, isAdmin, deleteCategory);

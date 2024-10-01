@@ -2,25 +2,29 @@
 const db = require('../config/db'); // Ensure db connection is correctly set up
 
 const getAllProducts = async (search, category, limit, offset) => {
-  let query = 'SELECT * FROM products';
+  let query = `
+    SELECT p.*
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+  `;
   const values = [];
   const conditions = [];
 
   if (search) {
-    conditions.push('(name ILIKE $' + (values.length + 1) + ' OR description ILIKE $' + (values.length + 1) + ')');
+    conditions.push('(p.name ILIKE $' + (values.length + 1) + ' OR p.description ILIKE $' + (values.length + 1) + ')');
     values.push(`%${search}%`);
   }
 
   if (category) {
-    conditions.push('category_id = $' + (values.length + 1));
-    values.push(category);
+    conditions.push('(c.name ILIKE $' + (values.length + 1) + ' OR c.description ILIKE $' + (values.length + 1) + ')');
+    values.push(`%${category}%`);
   }
 
   if (conditions.length > 0) {
     query += ' WHERE ' + conditions.join(' AND ');
   }
 
-  query += ' ORDER BY id LIMIT $' + (values.length + 1) + ' OFFSET $' + (values.length + 2);
+  query += ' ORDER BY p.id LIMIT $' + (values.length + 1) + ' OFFSET $' + (values.length + 2);
   values.push(limit, offset);
 
   const result = await db.query(query, values);
