@@ -74,10 +74,6 @@ const refreshToken = async (req, res, next) => {
     const decoded = await tokenService.verifyRefreshToken(token);
     const user = await userService.findUserById(decoded.id);
 
-    // if (!user) {
-    //   return next(new NotFoundError('User not found'));
-    // }
-
     // Optionally, revoke the old refresh token
     await tokenService.revokeRefreshToken(token);
 

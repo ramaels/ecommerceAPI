@@ -5,6 +5,8 @@ require('./middlewares/authMiddleware'); // Initialize Passport middleware
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 const { errorHandler } = require('./middlewares/errorMiddleware');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
@@ -27,12 +29,10 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use(authRoutes);
-
-// Use product routes
 app.use(productRoutes);
-
-// Use category routes
 app.use(categoryRoutes);
+app.use(cartRoutes);
+app.use(orderRoutes);
 
 app.use(errorHandler);
 
