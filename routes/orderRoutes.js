@@ -1,6 +1,6 @@
 // routes/orderRoutes.js
 const express = require('express');
-const { createOrder, getOrderById, getUserOrders, cancelOrder } = require('../controllers/orderController');
+const { checkout, getOrderById, getUserOrders, cancelOrder } = require('../controllers/orderController');
 const { verifyAccessToken } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -8,8 +8,8 @@ const router = express.Router();
 // Apply token verification to all routes in this router
 router.use(verifyAccessToken);
 
-// Place an order
-router.post('/orders', createOrder);
+// checkout route
+router.post('/checkout', checkout);
 
 // Get order by ID
 router.get('/orders/:id', getOrderById);

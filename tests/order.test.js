@@ -12,7 +12,7 @@ beforeAll(async () => {
   server = app.listen(5200); // Start the server
 
   // Truncate users, products, and refresh_tokens tables to ensure a clean state
-  await db.query('TRUNCATE users, refresh_tokens, orders, carts, cart_items, order_items RESTART IDENTITY CASCADE');
+  await db.query('TRUNCATE users, refresh_tokens, products, orders, carts, cart_items, order_items RESTART IDENTITY CASCADE');
 
   // Create a test user and generate a valid token
   const testUser = await userService.registerUser('testuser', 'testuser@example.com', 'testpassword');
@@ -39,11 +39,11 @@ describe('Order Routes - Token Verification', () => {
       .send({ product_id: 1, quantity: 2 });
 
     cartId = addCartResponse.body.cartItem.cart_id;
-
+    console.log('cartId: ', cartId);
     // Place the order
     const total = 100.00;
     const orderResponse = await request(app)
-      .post('/orders')
+      .post('/checkout')
       .set('Authorization', userAccessToken)
       .send({ cart_id: cartId, total });
 
@@ -64,17 +64,6 @@ describe('Order Routes - Token Verification', () => {
 
     expect(res.statusCode).toBe(403);
     expect(res.body.message).toBe('Invalid or expired token');
-  });
-
-  it('should allow placing an order with a valid token', async () => {
-    const res = await request(app)
-      .post('/orders')
-      .set('Authorization', userAccessToken)
-      .send({ cart_id: cartId, total: 100.00 });
-
-    expect(res.statusCode).toBe(201);
-    expect(res.body).toHaveProperty('order');
-    expect(parseFloat(res.body.order.total)).toBe(100.00);
   });
 
   it('should return 200 when fetching order by ID with a valid token', async () => {

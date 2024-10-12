@@ -10,7 +10,7 @@ const createCategory = async (req, res, next) => {
     return res.status(201).json({ category });
   } catch (err) {
     console.error('Error creating category:', err.message);
-    next(new DatabaseError('Failed to create category')); // Pass error to centralized handler
+    return next(new DatabaseError('Failed to create category')); // Pass error to centralized handler
   }
 };
 
@@ -20,7 +20,7 @@ const getAllCategories = async (req, res, next) => {
     return res.status(200).json({ categories });
   } catch (err) {
     console.error('Error fetching categories:', err.message);
-    next(new DatabaseError('Failed to fetch categories')); // Pass error to centralized handler
+    return next(new DatabaseError('Failed to fetch categories')); // Pass error to centralized handler
   }
 };
 
@@ -35,7 +35,7 @@ const getCategoryById = async (req, res, next) => {
     return res.status(200).json({ category });
   } catch (err) {
     console.error('Error fetching category:', err.message);
-    next(err);  // Pass error to centralized handler
+    return next(new DatabaseError('Failed to fetch category by ID')); // Pass error to centralized handler
   }
 };
 
@@ -51,7 +51,7 @@ const updateCategory = async (req, res, next) => {
     return res.status(200).json({ category: updatedCategory });
   } catch (err) {
     console.error('Error updating category:', err.message);
-    next(new DatabaseError('Failed to update category'));  // Pass error to centralized handler
+    return next(new DatabaseError('Failed to update category'));  // Pass error to centralized handler
   }
 };
 
@@ -66,7 +66,7 @@ const deleteCategory = async (req, res, next) => {
     return res.status(200).json({ message: 'Category deleted successfully' });
   } catch (err) {
     console.error('Error deleting category:', err.message);
-    next(new DatabaseError('Failed to delete category'));  // Pass error to centralized handler
+    return next(new DatabaseError('Failed to delete category'));  // Pass error to centralized handler
   }
 };
 

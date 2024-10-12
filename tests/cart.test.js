@@ -68,7 +68,7 @@ describe('Cart Logic', () => {
     const res = await request(app)
       .delete(`/cart/${cartId}`)
       .set('Authorization', userAccessToken)
-      .send({ product_id: 1 }); // Provide the product_id for removal
+      .send({ product_id: 1, quantity_to_remove: 3 }); // Provide the product_id, quantity_to_remove for removal
 
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toBe('Item removed from cart');
@@ -92,9 +92,9 @@ describe('Order Logic', () => {
     cartId = cartResponse.body.cartItems[0].cart_id;
 
     const res = await request(app)
-      .post('/orders')
+      .post('/checkout')
       .set('Authorization', userAccessToken)
-      .send({ cart_id: cartId, total: 100.00 });
+      .send({ cart_id: cartId });
 
     expect(res.statusCode).toBe(201);
     expect(res.body.order).toHaveProperty('id');

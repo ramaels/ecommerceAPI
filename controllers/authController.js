@@ -14,7 +14,7 @@ const registerUser = async (req, res, next) => {
     // Check if the user already exists
     const existingUser = await userService.findUserByEmail(email);
     if (existingUser) {
-      next(new ValidationError('User already exists')); // Pass error to centralized handler
+      return next(new ValidationError('User already exists')); // Pass error to centralized handler
     }
 
     // Create a new user if the email is not registered
@@ -22,7 +22,7 @@ const registerUser = async (req, res, next) => {
     return res.status(201).json(newUser);
   } catch (err) {
     console.error('Error during user registration:', err);  // Add logging for error tracking
-    next(new DatabaseError('Server error')); // Pass error to centralized handler
+    return next(new DatabaseError('Server error')); // Pass error to centralized handler
   }
 };
 
