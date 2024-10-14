@@ -1,53 +1,53 @@
 // controllers/orderController.js
 const orderService = require('../services/orderService');
 const cartService = require('../services/cartService');
+const couponService = require('../services/couponService');
 const { ValidationError, NotFoundError, DatabaseError } = require('../utils/errors');
 
 const checkout = async (req, res, next) => {
+  const { cart_id, coupon_code, cart_total } = req.body;
   const userId = req.user.id;
 
   try {
-    // Initiate checkout process via the order service
-    const order = await orderService.checkout(userId);
+    // Fetch cart and validate
+    const cartItems = await cartService.getCartItems(userId);
+    if (!cartItems || cartItems.length === 0) {
+      return next(new ValidationError('Cart is empty'));
+    }
 
-    // If no order could be created, send an error
+    let discount = 0;
+    // Apply coupon if provided
+    if (coupon_code) {
+      const coupon = await couponService.applyCouponToCart(cart_id, coupon_code, cart_total);
+      // console.log('coupon:', coupon, 'cartItems: ', cartItems);
+      if (coupon.discount_type === 'percentage') {
+        discount = (coupon.discount_value / 100) * cart_total;
+      } else if (coupon.discount_type === 'fixed') {
+        discount = coupon.discount_value;
+      } else if (coupon.discount_type === 'free_shipping') {
+        discount = 0;  // Free shipping logic would be applied separately
+      }
+    }
+
+    const total = cart_total - discount;
+
+    // Proceed with order creation
+    const order = await orderService.createOrder(cart_id, total);
     if (!order) {
       return next(new ValidationError('Checkout failed, your cart may be empty.'));
     }
 
     // update the cart status
     const cart = await cartService.updateCartStatus(order.cart_id, 'completed');
-    // if no cart found, send an error
     if (!cart) return next(new NotFoundError('Cart update failed, your cart does not exist.'));
 
     // Respond with success
-    return res.status(201).json({ message: 'Checkout successful', order });
+    return res.status(201).json({ message: 'Checkout successful', total, order });
   } catch (err) {
     console.error('Error during checkout:', err);
-    return next(new DatabaseError('Server error during checkout'));
+    return next(err);
   }
 };
-
-// Create a new order
-// const createOrder = async (req, res, next) => {
-//   const { cart_id, total } = req.body;
-//   const userId = req.user.id;
-
-//   try {
-//     if (!cart_id || !total) {
-//       return next(new ValidationError('Cart ID and total amount are required'));
-//     }
-
-//     const order = await orderService.createOrder(userId, cart_id, total);
-//     if (!order) {
-//       return next(new NotFoundError('Cart is empty, cannot create order'));
-//     }
-
-//     return res.status(201).json({ message: 'Order placed', order });
-//   } catch (err) {
-//     return next(new DatabaseError('Server error creating order'));
-//   }
-// };
 
 // Get order by ID
 const getOrderById = async (req, res, next) => {

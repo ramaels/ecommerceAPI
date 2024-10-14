@@ -40,7 +40,7 @@ const verifyAccessToken = (req, res, next) => {
 
   // The token should be in the format "Bearer <token>"
   const token = authHeader.split(' ')[1];
-  console.log('token: ', token);
+  // console.log('token: ', token);
   if (!token) {
     // return res.status(401).json({ message: 'Token is required' });
     return next(new UnauthorizedError('Token is required'));

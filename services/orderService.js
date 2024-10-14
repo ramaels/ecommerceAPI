@@ -21,18 +21,18 @@ const checkout = async (userId) => {
   return order;
 };
 
-// const createOrder = async (userId, cartId, total) => {
-//   const cartItems = await cartService.getCartItems(userId);
+const createOrder = async (cartId, total) => {
+  // const cartItems = await cartService.getCartItems(userId);
 
-//   // If no items in cart, return null
-//   if (!cartItems || cartItems.length === 0) {
-//     return null;
-//   }
+  // // If no items in cart, return null
+  // if (!cartItems || cartItems.length === 0) {
+  //   return null;
+  // }
 
-//   // Create order and return the result
-//   const order = await orderModel.createOrder(userId, cartId, total);
-//   return order;
-// };
+  // Create order and return the result
+  const order = await orderModel.createOrder(cartId, total);
+  return order;
+};
 
 const getOrderById = async (userId, orderId) => {
   const order = await orderModel.getOrderById(orderId);
@@ -67,6 +67,7 @@ const cancelOrder = async (userId, orderId) => {
 
 module.exports = {
   checkout,
+  createOrder,
   getOrderById,
   getUserOrders,
   cancelOrder,

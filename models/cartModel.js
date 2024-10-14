@@ -63,7 +63,7 @@ const getCartItems = async (userId) => {
 
 const getCartUser = async (userId) => {
   const query = `
-    SELECT id, user_id, status
+    SELECT id, user_id, status, total
     FROM carts
     WHERE user_id = $1 AND status = 'active';
   `;

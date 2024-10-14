@@ -4,12 +4,12 @@ const cartModel = require('../models/cartModel');
 const addItemToCart = async (userId, productId, quantity, price) => {
   // Get the cart associated with the user
   let cart = await cartModel.getCartUser(userId);
-  console.log('cart: ', cart, 'userId: ', userId);
   // If no active cart, create a new one
   if (!cart || cart.length === 0) {
   // if (!cart) {
     cart = await cartModel.createCart(userId);
   }
+  console.log('cart: ', cart, 'userId: ', userId);
 
   // Add or update the item in the cart
   const cartItem = await cartModel.addItemToCart(cart.id, productId, quantity, price);
@@ -48,6 +48,12 @@ const getCartItems = async (userId) => {
   return cartItems || null;
 };
 
+const getCartUser = async (userId) => {
+  const cart = await cartModel.getCartUser(userId);
+  if (!cart) return null;
+  return cart;
+};
+
 const removeCartItem = async (userId, productId) => {
   const cartItems = await cartModel.getCartItems(userId);
 
@@ -68,6 +74,7 @@ module.exports = {
   addItemToCart,
   updateCartStatus,
   updateCartItem,
+  getCartUser,
   getCartItems,
   removeCartItem,
 };
