@@ -18,8 +18,12 @@ const comparePasswords = async (inputPassword, storedPassword) => {
 };
 
 const findUserById = async (userId) => {
-    const user = await db.findUserById(userId);
-    return user;
+  const user = await db.findUserById(userId);
+  return user;
+};
+
+const updateUserProfile = async (userId, fields) => {
+  return db.updateUserProfile(userId, fields);
 };
 
 module.exports = {
@@ -27,4 +31,5 @@ module.exports = {
   findUserByEmail,
   comparePasswords,
   findUserById,
+  updateUserProfile,
 };

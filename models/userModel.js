@@ -21,8 +21,25 @@ const findUserById = async (userId) => {
     return result.rows[0];
 };
 
+const updateUserProfile = async (userId, fields) => {
+  const setFields = Object.keys(fields)
+    .map((field, index) => `${field} = $${index + 2}`)
+    .join(', ');
+
+  const query = `
+    UPDATE users
+    SET ${setFields}
+    WHERE id = $1
+    RETURNING id, username, email;
+  `;
+  const values = [userId, ...Object.values(fields)];
+  const result = await db.query(query, values);
+  return result.rows[0];
+};
+
 module.exports = {
   createUser,
   findUserByEmail,
   findUserById,
+  updateUserProfile,
 };
