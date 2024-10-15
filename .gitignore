@@ -13,8 +13,9 @@ yarn-cache
 # Ignore bower cache
 bower-cache
 
-#Ignore the environment file
+#Ignore files
 .env
+swagger.jsonbk
 
 #Ignore coverage
 coverage

@@ -1,3 +1,4 @@
+//routes/shippingAddressRoutes.js
 const express = require('express');
 const shippingAddressController = require('../controllers/shippingAddressController');
 const { verifyAccessToken } = require('../middlewares/authMiddleware');
